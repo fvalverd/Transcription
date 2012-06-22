@@ -5,6 +5,7 @@ import sys
 import os
 import Tkinter
 from Tkinter import *
+import ConfigParser
 
 __version__ = "1.0"
 
@@ -71,9 +72,19 @@ class Transciption(Tkinter.Tk):
                 Tkinter.Tk.__init__(self, *args, **kwargs)
 
                 self.title(u' Gaby\'s Transcription :)')
+
                 config = self.read_config()
                 self.add_fields(config)
                 
+                options_frame = Frame(self)
+                options_frame.pack()
+                self.boton=Button(options_frame,text="Primero", command=self.first)
+                self.boton.pack(side=LEFT)
+                self.boton=Button(options_frame,text="Cargar planilla", command=self.load)
+                self.boton.pack(side=LEFT)
+                self.boton=Button(options_frame,text="Último", command=self.last)
+                self.boton.pack()
+
                 options_frame = Frame(self)
                 options_frame.pack()
                 self.boton=Button(options_frame,text="Anterior", command=self.previuos)
@@ -84,38 +95,40 @@ class Transciption(Tkinter.Tk):
                 self.boton.pack()
 
         def read_config(self):
-                return [u'Inscripción',
-                        u'N° Sección',
-                        u'Comuna Subdelegación',
-                        u'N° Subdelegación',
-                        u'N° Inscripción',
-                        u'Extranjero',
-                        u'Gabinete que otorgó el carnet de identidad',
-                        u'Profesión',
-                        u'Calle',
-                        u'Número de casa',
-                        ]
+                config = dict()
+                parser = ConfigParser.RawConfigParser()
+                parser.read(u'transcripción.cfg')
+                sections = parser.sections()
+                for section in sections:
+                        config[section] = dict()
+                        config[section]['autocomplete'] = parser.get(section, 'autocomplete')
+                        config[section]['autocomplete'] = config[section]['autocomplete']
+                        if config[section]['autocomplete']:
+                                config[section]['autocomplete'] = config[section]['autocomplete'].split(' ')
+                                config[section]['autocomplete'].append('')
+                        else:
+                                config[section]['autocomplete'] = ['']
+                return config
 
         def add_fields(self, config):
                 self.fields = {}
-
-                root_frame = Frame(self)
-                root_frame.pack()
-                label_frame = Frame(root_frame)
-                label_frame.pack(side=LEFT)
-                values_frame = Frame(root_frame)
-                values_frame.pack()
-
                 for field in config:
-                        Label(label_frame, text=field).pack()
-                        self.fields[field] = AutocompleteEntry(values_frame)
-                        self.fields[field].set_completion_list(list())
+                        frame = Frame(self)
+                        frame.pack()
+                        Label(frame, text=field, anchor=E, width=35).pack(fill=X, side=LEFT)
+                        self.fields[field] = AutocompleteEntry(frame)
+                        self.fields[field].set_completion_list(config[field]['autocomplete'])
                         self.fields[field].pack()
 
-                self.fields[config[0]].focus_set()
+                # self.fields[config[u'Inscripción']].focus_set()
 
-        def previuos(self) : pass
+
+        def load(self) : pass
         def save(self) : pass
+
+        def first(self) : pass
+        def last(self) : pass
+        def previuos(self) : pass
         def next(self) : pass
 
 
