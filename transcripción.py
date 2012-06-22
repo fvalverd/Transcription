@@ -66,15 +66,15 @@ class AutocompleteEntry(Tkinter.Entry):
                         self.autocomplete()
 
 
-FIELDS = (u'Inscripción', u'N° Sección')
+class Transciption(Tkinter.Tk):
+        def __init__(self, *args, **kwargs):
+                Tkinter.Tk.__init__(self, *args, **kwargs)
 
-class Transciption:
-        def __init__(self):
-                self.window = Tkinter.Tk(className=u' Gaby\'s Transcription :)')
-                self.read_config()
-                self.add_fields()
+                self.title(u' Gaby\'s Transcription :)')
+                config = self.read_config()
+                self.add_fields(config)
                 
-                options_frame = Frame(self.window)
+                options_frame = Frame(self)
                 options_frame.pack()
                 self.boton=Button(options_frame,text="Anterior", command=self.previuos)
                 self.boton.pack(side=LEFT)
@@ -83,170 +83,42 @@ class Transciption:
                 self.boton=Button(options_frame,text="Siguiente", command=self.next)
                 self.boton.pack()
 
-                self.window.mainloop()
+        def read_config(self):
+                return [u'Inscripción',
+                        u'N° Sección',
+                        u'Comuna Subdelegación',
+                        u'N° Subdelegación',
+                        u'N° Inscripción',
+                        u'Extranjero',
+                        u'Gabinete que otorgó el carnet de identidad',
+                        u'Profesión',
+                        u'Calle',
+                        u'Número de casa',
+                        ]
 
-        def read_config(self): pass
-
-        def add_fields(self):
+        def add_fields(self, config):
                 self.fields = {}
 
-                for field in FIELDS:
-                        frame = Frame(self.window)
-                        frame.pack()
+                root_frame = Frame(self)
+                root_frame.pack()
+                label_frame = Frame(root_frame)
+                label_frame.pack(side=LEFT)
+                values_frame = Frame(root_frame)
+                values_frame.pack()
 
-                        Label(frame, text=field).pack(side=LEFT)
-                        self.fields[field] = AutocompleteEntry(frame)
+                for field in config:
+                        Label(label_frame, text=field).pack()
+                        self.fields[field] = AutocompleteEntry(values_frame)
+                        self.fields[field].set_completion_list(list())
                         self.fields[field].pack()
+
+                self.fields[config[0]].focus_set()
 
         def previuos(self) : pass
         def save(self) : pass
         def next(self) : pass
 
 
-
-def run_transcription():
-        test_list = (u'test', u'type', u'true', u'tree', u'tölz')
-        root = Tkinter.Tk(className=u' Gaby\'s Transcription :)')
-
-        # A # Inscripción
-        registration_frame = Frame(root)
-        registration_frame.pack()
-
-        label = Label(registration_frame, text=u'Inscripción')
-        label.pack(side=LEFT)
-
-        registration_list = (u'extraordinaria', u'')
-        registration_entry = AutocompleteEntry(registration_frame)
-        registration_entry.set_completion_list(registration_list)
-        registration_entry.pack()
-        registration_entry.focus_set()
-
-        
-        # C # Sección
-        section_frame = Frame(root)
-        section_frame.pack()
-
-        label = Label(section_frame, text=u'N° Sección')
-        label.pack(side=LEFT)
-
-        section_entry = AutocompleteEntry(section_frame)
-        section_entry.set_completion_list(test_list)
-        section_entry.pack()
-        section_entry.focus_set()
-
-
-        # F # Comuna Subdelegación
-        commune_subbranch_frame = Frame(root)
-        commune_subbranch_frame.pack()
-
-        label = Label(commune_subbranch_frame, text=u'Comuna Subdelegación')
-        label.pack(side=LEFT)
-
-        commune_subbranch_list = (u'sta lucia', u'')
-        commune_subbranch_entry = AutocompleteEntry(commune_subbranch_frame)
-        commune_subbranch_entry.set_completion_list(commune_subbranch_list)
-        commune_subbranch_entry.pack()
-        commune_subbranch_entry.focus_set()  
-
-
-        # G # Subdelegación
-        subbranch_frame = Frame(root)
-        subbranch_frame.pack()
-
-        label = Label(subbranch_frame, text=u'N° Subdelegación')
-        label.pack(side=LEFT)
-
-        subbranch_list = (u'sta lucia', u'')
-        subbranch_entry = AutocompleteEntry(subbranch_frame)
-        subbranch_entry.set_completion_list(subbranch_list)
-        subbranch_entry.pack()
-        subbranch_entry.focus_set()
-
-
-        # I # N° Inscripción
-        n_registration_frame = Frame(root)
-        n_registration_frame.pack()
-
-        label = Label(n_registration_frame, text=u'N° Inscripción')
-        label.pack(side=LEFT)
-
-        n_registration_entry = Entry(n_registration_frame)
-        n_registration_entry.pack()
-        n_registration_entry.focus_set()
-
-
-
-        # K # Extranjero
-        foreign_frame = Frame(root)
-        foreign_frame.pack()
-
-        label = Label(foreign_frame, text=u'Extranjero')
-        label.pack(side=LEFT)
-
-        foreign_list = (u'???', u'')
-        foreign_entry = AutocompleteEntry(foreign_frame)
-        foreign_entry.set_completion_list(foreign_list)
-        foreign_entry.pack()
-        foreign_entry.focus_set()
-
-
-        # L # Gabinete que otorgó el carnet de identidad
-        place_frame = Frame(root)
-        place_frame.pack()
-
-        label = Label(place_frame, text=u'Gabinete que otorgó el carnet de identidad')
-        label.pack(side=LEFT)
-
-        place_list = (u'santiago', u'')
-        place_entry = AutocompleteEntry(place_frame)
-        place_entry.set_completion_list(place_list)
-        place_entry.pack()
-        place_entry.focus_set()
-
-
-        # L # Profesión
-        occupation_frame = Frame(root)
-        occupation_frame.pack()
-
-        label = Label(occupation_frame, text=u'Profesión')
-        label.pack(side=LEFT)
-
-        occupation_list = (u'empleado', u'')
-        occupation_entry = AutocompleteEntry(occupation_frame)
-        occupation_entry.set_completion_list(occupation_list)
-        occupation_entry.pack()
-        occupation_entry.focus_set()
-
-
-        # L # Street
-        street_frame = Frame(root)
-        street_frame.pack()
-
-        label = Label(street_frame, text=u'Calle')
-        label.pack(side=LEFT)
-
-        street_list = (u'bandera', u'')
-        street_entry = AutocompleteEntry(street_frame)
-        street_entry.set_completion_list(street_list)
-        street_entry.pack()
-        street_entry.focus_set()
-
-
-        # L # Street Number
-        n_street_frame = Frame(root)
-        n_street_frame.pack()
-
-        label = Label(n_street_frame, text=u'Número de casa')
-        label.pack(side=LEFT)
-
-        n_street_entry = Entry(n_street_frame)
-        n_street_entry.pack()
-        n_street_entry.focus_set()        
-
-
-        # Start
-        root.mainloop()
-
 if __name__ == '__main__':
-        # run_transcription()
         t = Transciption()
+        t.mainloop()
