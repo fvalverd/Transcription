@@ -14,6 +14,9 @@ tkinter_umlauts=['odiaeresis', 'adiaeresis', 'udiaeresis', 'Odiaeresis', 'Adiaer
 
 class AutocompleteEntry(Tkinter.Entry):
         
+        def get_completion_list(self):
+                return self._completion_list
+
         def set_completion_list(self, completion_list):
                 self._completion_list = completion_list
                 self._hits = []
@@ -124,7 +127,20 @@ class Transciption(Tkinter.Tk):
 
 
         def load(self) : pass
-        def save(self) : pass
+        def save(self) :
+                # TODO: generar el XLSX
+
+                # TODO: Actualizar el archivo de conf con la lista de autocompletado
+                # Revisar que el autocompletado con espacio se cambie por _
+
+                # Actualizar la lista de autocompletado
+                for field in self.fields:
+                        text = self.fields[field].get()
+                        if text:
+                                completion_list = self.fields[field].get_completion_list()
+                                if not text in completion_list:
+                                        completion_list.append(text)
+                                        self.fields[field].set_completion_list(completion_list)
 
         def first(self) : pass
         def last(self) : pass
