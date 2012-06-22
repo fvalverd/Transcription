@@ -102,12 +102,12 @@ class Transciption(Tkinter.Tk):
                 for section in sections:
                         config[section] = dict()
                         config[section]['autocomplete'] = parser.get(section, 'autocomplete')
-                        config[section]['autocomplete'] = config[section]['autocomplete']
                         if config[section]['autocomplete']:
                                 config[section]['autocomplete'] = config[section]['autocomplete'].split(' ')
                                 config[section]['autocomplete'].append('')
                         else:
                                 config[section]['autocomplete'] = ['']
+                        config[section]['autocomplete'] = [text.replace('_', ' ') for text in config[section]['autocomplete']]
                 return config
 
         def add_fields(self, config):
