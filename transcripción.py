@@ -65,6 +65,45 @@ class AutocompleteEntry(Tkinter.Entry):
                 if len(event.keysym) == 1 or event.keysym in tkinter_umlauts:
                         self.autocomplete()
 
+
+FIELDS = (u'Inscripción', u'N° Sección')
+
+class Transciption:
+        def __init__(self):
+                self.window = Tkinter.Tk(className=u' Gaby\'s Transcription :)')
+                self.read_config()
+                self.add_fields()
+                
+                options_frame = Frame(self.window)
+                options_frame.pack()
+                self.boton=Button(options_frame,text="Anterior", command=self.previuos)
+                self.boton.pack(side=LEFT)
+                self.boton=Button(options_frame,text="Guardar", command=self.save)
+                self.boton.pack(side=LEFT)
+                self.boton=Button(options_frame,text="Siguiente", command=self.next)
+                self.boton.pack()
+
+                self.window.mainloop()
+
+        def read_config(self): pass
+
+        def add_fields(self):
+                self.fields = {}
+
+                for field in FIELDS:
+                        frame = Frame(self.window)
+                        frame.pack()
+
+                        Label(frame, text=field).pack(side=LEFT)
+                        self.fields[field] = AutocompleteEntry(frame)
+                        self.fields[field].pack()
+
+        def previuos(self) : pass
+        def save(self) : pass
+        def next(self) : pass
+
+
+
 def run_transcription():
         test_list = (u'test', u'type', u'true', u'tree', u'tölz')
         root = Tkinter.Tk(className=u' Gaby\'s Transcription :)')
@@ -209,4 +248,5 @@ def run_transcription():
         root.mainloop()
 
 if __name__ == '__main__':
-        run_transcription()
+        # run_transcription()
+        t = Transciption()
