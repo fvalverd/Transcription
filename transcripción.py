@@ -3,7 +3,7 @@
 from configobj import ConfigObj
 import os
 import sys
-import Tkinter, tkFileDialog
+import Tkinter, tkFileDialog, tkMessageBox
 from Tkinter import *
 
 from openpyxl.reader.excel import load_workbook
@@ -78,11 +78,23 @@ class AutocompleteEntry(Tkinter.Entry):
 
 
 class Transciption(Tkinter.Tk):
-        
+
         def __init__(self, *args, **kwargs):
                 Tkinter.Tk.__init__(self, *args, **kwargs)
 
                 self.title(u' Gaby\'s Transcription :) :)')
+
+                # Button X Exit
+                self.protocol("WM_DELETE_WINDOW", self.exit)
+
+                # Save
+                self.bind("<Control-s>", self.save)
+
+                # Next
+                self.bind("<Next>", self.next)
+
+                # Previous
+                self.bind("<Prior>", self.previuos)
 
                 self.init_values()
                 self.config = ConfigObj(CONFIG_FILE, encoding='utf-8')
@@ -139,10 +151,13 @@ class Transciption(Tkinter.Tk):
                         frame.pack()
                         Label(frame, text=field, anchor=E, width=35).pack(fill=X, side=LEFT)
                         self.vars_fields[field] = StringVar()
-                        self.fields[field] = AutocompleteEntry(frame, textvariable=self.vars_fields[field])
+                        
                         # Autocomplete
                         if 'autocomplete' in self.config[field]:
+                            self.fields[field] = AutocompleteEntry(frame, textvariable=self.vars_fields[field])
                             self.fields[field].set_completion_list(self.config[field]['autocomplete'])
+                        else:
+                            self.fields[field] = Entry(frame, textvariable=self.vars_fields[field])
                         self.fields[field].pack()
 
                         # Keep first
@@ -197,7 +212,7 @@ class Transciption(Tkinter.Tk):
                 self.show_cell(last_row)
                 print 'Openning OK'
 
-        def save(self):
+        def save(self, dummy=None):
                 self.update_autocomplete()
                 self.save_ws(persist=True)
         
@@ -239,6 +254,8 @@ class Transciption(Tkinter.Tk):
                 # Actualiza la lista de autocompletado en los Entry
                 are_changes = False
                 for field in self.fields:
+                        if not 'autocomplete' in self.config[field]:
+                            continue 
                         text = self.fields[field].get()
                         if text and not text in self.config[field]['autocomplete']:
                                 are_changes = True
@@ -254,19 +271,21 @@ class Transciption(Tkinter.Tk):
                 last_row = self.ws.get_highest_row()
                 self.show_cell(last_row)
 
-        def previuos(self):
+        def previuos(self, dummy=None):
                 if self.current_row > 2:
                         self.show_cell(self.current_row-1)
 
         def is_current_cell_not_empty(self):
                 empty = True
                 for field in self.vars_fields:
+                        if 'stay_next' in self.config[field]:
+                            continue
                         if self.vars_fields[field].get():
                                 empty = False
                                 break
                 return not empty
 
-        def next(self):
+        def next(self, dummy=None):
                 self.update_autocomplete()
                 # Mantener N° Sección, N° Subdelegación, Comuna Subdelegación, Inscripción cuando el siguiente está vació
                 if self.is_current_cell_not_empty():
@@ -275,6 +294,10 @@ class Transciption(Tkinter.Tk):
                         if self.current_row == last_row:
                             stay_next = True
                         self.show_cell(self.current_row+1, stay_next=stay_next)
+
+        def exit(self):
+            if tkMessageBox.askokcancel('Salir', u'¿Estás segura que quieres salir?'):
+                self.destroy()
 
 
 
