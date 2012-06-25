@@ -121,6 +121,10 @@ class Transciption(Tkinter.Tk):
                 self.xlsx_name = None
                 self.wb = None
                 self.ws = None
+                self.first_entry_field = None
+                self.fields = dict()
+                self.vars_fields = dict()
+                self.fields_stay_next = list()
 
 
         def read_config(self):
@@ -144,10 +148,15 @@ class Transciption(Tkinter.Tk):
                 self.config = config
 
         def add_fields(self):
-                self.fields = {}
-                self.vars_fields = {}
+                # Frame order
+                frames = list()
                 for field in self.config:
-                        frame = Frame(self)
+                    frames.append(Frame(self))
+                    frames[-1].pack()
+
+                for field in self.config:
+                        position = int(self.config[field].get('position'))
+                        frame = frames[position-1]
                         frame.pack()
                         Label(frame, text=field, anchor=E, width=35).pack(fill=X, side=LEFT)
                         self.vars_fields[field] = StringVar()
@@ -155,11 +164,24 @@ class Transciption(Tkinter.Tk):
                         self.fields[field].set_completion_list(self.config[field]['autocomplete'])
                         self.fields[field].pack()
 
-        def clean_entries(self):
-                for field in self.fields:
-                        self.vars_fields[field].set('')
+                        # Keep first
+                        if position == 1:
+                            self.first_entry_field = self.fields[field]
+                            self.first_entry_field.focus_set()
 
-        def show_cell(self, row):
+                        # Keep Stay Next list
+                        stay_next = self.config[field].get('stay_next')
+                        if stay_next:
+                            self.fields_stay_next.append(self.vars_fields[field])
+
+        def clean_entries(self, stay_next=False):
+                for field in self.fields:
+                    var_field = self.vars_fields[field]
+                    if stay_next and var_field in self.fields_stay_next:
+                        continue
+                    var_field.set('')
+
+        def show_cell(self, row, stay_next=False):
                 print 'Showing' , row
 
                 self.var_current_row.set(str(row))
@@ -169,13 +191,18 @@ class Transciption(Tkinter.Tk):
                 self.current_row = row
 
                 # Show on Entries
-                self.clean_entries()
+                self.clean_entries(stay_next=stay_next)
                 for field in self.config:
                         column = self.config[field].get('column')
                         if column:
                                 value = self.ws.cell(column + str(row)).value
                                 if value:
                                         self.vars_fields[field].set(value)
+
+                # Set focus on first field
+                if self.first_entry_field:
+                    self.first_entry_field.focus_set()
+
                 print 'Showing OK'
 
         def load(self):
@@ -252,8 +279,7 @@ class Transciption(Tkinter.Tk):
                         self.read_config()
 
 
-        def first(self):
-                self.show_cell(2)
+        def first(self): self.show_cell(2)
 
         def last(self):
                 last_row = self.ws.get_highest_row()
@@ -272,8 +298,13 @@ class Transciption(Tkinter.Tk):
                 return not empty
 
         def next(self):
+                # Mantener N° Sección, N° Subdelegación, Comuna Subdelegación, Inscripción cuando el siguiente está vació
                 if self.is_current_cell_not_empty():
-                        self.show_cell(self.current_row+1)
+                        last_row = self.ws.get_highest_row()
+                        stay_next = False
+                        if self.current_row == last_row:
+                            stay_next = True
+                        self.show_cell(self.current_row+1, stay_next=stay_next)
 
 
 if __name__ == '__main__':
