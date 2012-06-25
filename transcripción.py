@@ -12,7 +12,7 @@ from openpyxl.style import Color, Fill
 # _cell.style.fill.fill_type = Fill.FILL_SOLID
 # _cell.style.fill.start_color.index = Color.DARKRED
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 
 LOCAL_DIR = os.path.dirname(os.path.abspath(__file__))
