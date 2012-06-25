@@ -127,6 +127,8 @@ class Transciption(Tkinter.Tk):
                 self.boton=Button(options_frame,text="Último", command=self.last)
                 self.boton.pack()
 
+                self.load()
+
         def init_values(self):
                 self.config = None
                 self.current_row = None
