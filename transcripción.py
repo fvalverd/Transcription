@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-import ConfigParser
+from configobj import ConfigObj
 import os
 import sys
 import Tkinter, tkFileDialog
@@ -15,7 +15,7 @@ from openpyxl.style import Color, Fill
 __version__ = "1.0"
 
 
-
+LOCAL_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = u'transcripción.cfg'
 tkinter_umlauts=['odiaeresis', 'adiaeresis', 'udiaeresis', 'Odiaeresis', 'Adiaeresis', 'Udiaeresis', 'ssharp']
 
@@ -23,8 +23,6 @@ tkinter_umlauts=['odiaeresis', 'adiaeresis', 'udiaeresis', 'Odiaeresis', 'Adiaer
 
 class AutocompleteEntry(Tkinter.Entry):
         
-        def get_completion_list(self): return self._completion_list
-
         def set_completion_list(self, completion_list):
                 self._completion_list = completion_list
                 self._hits = []
@@ -80,32 +78,26 @@ class AutocompleteEntry(Tkinter.Entry):
 
 
 class Transciption(Tkinter.Tk):
+        
         def __init__(self, *args, **kwargs):
                 Tkinter.Tk.__init__(self, *args, **kwargs)
 
                 self.title(u' Gaby\'s Transcription :) :)')
 
                 self.init_values()
+                self.config = ConfigObj(CONFIG_FILE, encoding='utf-8')
                 
+                # Current row
                 current_frame = Frame(self)
                 current_frame.pack()
                 Label(current_frame, text=u'Fila actual :  ').pack(side=LEFT)
                 self.var_current_row = StringVar()
                 Label(current_frame, textvariable=self.var_current_row).pack()
 
-
-                self.read_config()
+                # Config fields
                 self.add_fields()
                 
-                options_frame = Frame(self)
-                options_frame.pack()
-                self.boton=Button(options_frame,text="Primero", command=self.first)
-                self.boton.pack(side=LEFT)
-                self.boton=Button(options_frame,text="Cargar planilla", command=self.load)
-                self.boton.pack(side=LEFT)
-                self.boton=Button(options_frame,text="Último", command=self.last)
-                self.boton.pack()
-
+                # Button options
                 options_frame = Frame(self)
                 options_frame.pack()
                 self.boton=Button(options_frame,text="Anterior", command=self.previuos)
@@ -113,6 +105,14 @@ class Transciption(Tkinter.Tk):
                 self.boton=Button(options_frame,text="Guardar", command=self.save)
                 self.boton.pack(side=LEFT)
                 self.boton=Button(options_frame,text="Siguiente", command=self.next)
+                self.boton.pack()
+                options_frame = Frame(self)
+                options_frame.pack()
+                self.boton=Button(options_frame,text="Primero", command=self.first)
+                self.boton.pack(side=LEFT)
+                self.boton=Button(options_frame,text="Cargar planilla", command=self.load)
+                self.boton.pack(side=LEFT)
+                self.boton=Button(options_frame,text="Último", command=self.last)
                 self.boton.pack()
 
         def init_values(self):
@@ -125,27 +125,6 @@ class Transciption(Tkinter.Tk):
                 self.fields = dict()
                 self.vars_fields = dict()
                 self.fields_stay_next = list()
-
-
-        def read_config(self):
-                config = dict()
-                parser = ConfigParser.RawConfigParser()
-                parser.read(CONFIG_FILE)
-                sections = parser.sections()
-                for section in sections:
-                        config[section] = dict()
-                        for option in parser.options(sections[0]):
-                                if option == 'autocomplete':
-                                        config[section]['autocomplete'] = parser.get(section, 'autocomplete')
-                                        if config[section]['autocomplete']:
-                                                config[section]['autocomplete'] = config[section]['autocomplete'].split(' ')
-                                                config[section]['autocomplete'].append('')
-                                        else:
-                                                config[section]['autocomplete'] = ['']
-                                        config[section]['autocomplete'] = [text.replace('_', ' ') for text in config[section]['autocomplete']]
-                                else:
-                                        config[section][option] = parser.get(section, option)
-                self.config = config
 
         def add_fields(self):
                 # Frame order
@@ -161,7 +140,9 @@ class Transciption(Tkinter.Tk):
                         Label(frame, text=field, anchor=E, width=35).pack(fill=X, side=LEFT)
                         self.vars_fields[field] = StringVar()
                         self.fields[field] = AutocompleteEntry(frame, textvariable=self.vars_fields[field])
-                        self.fields[field].set_completion_list(self.config[field]['autocomplete'])
+                        # Autocomplete
+                        if 'autocomplete' in self.config[field]:
+                            self.fields[field].set_completion_list(self.config[field]['autocomplete'])
                         self.fields[field].pack()
 
                         # Keep first
@@ -170,9 +151,9 @@ class Transciption(Tkinter.Tk):
                             self.first_entry_field.focus_set()
 
                         # Keep Stay Next list
-                        stay_next = self.config[field].get('stay_next')
-                        if stay_next:
-                            self.fields_stay_next.append(self.vars_fields[field])
+                        if 'stay_next' in self.config[field]:
+                            if self.config[field]['stay_next'] == 'True':
+                                self.fields_stay_next.append(self.vars_fields[field])
 
         def clean_entries(self, stay_next=False):
                 for field in self.fields:
@@ -240,7 +221,7 @@ class Transciption(Tkinter.Tk):
                                         cell = self.ws.cell(column + str(self.current_row))
                                         cell.value = self.vars_fields[field].get()
 
-                        # Datos permanentes # TODO: esto debe ir en el cfg, puede ser el tag default
+                        # Datos permanentes # TODO: esto debe ir en el cfg
                         defaults = [{'name':u'año', 'column':u'B', 'value':'1925'},
                                     {'name':u'provincia', 'column':u'D', 'value':'santiago'},
                                     {'name':u'sexo', 'column':u'J', 'value':'h'},
@@ -249,34 +230,22 @@ class Transciption(Tkinter.Tk):
                             cell = self.ws.cell(default.get('column') + str(self.current_row))
                             cell.value = default.get('value')
 
+                        # If persist save on xlsx file
                         if persist:
                                 self.wb.save(self.xlsx_name)
                 print 'Saving OK'
 
         def update_autocomplete(self):
-                # Actualizar la lista de autocompletado en los Entry
-                new_texts = dict()
+                # Actualiza la lista de autocompletado en los Entry
+                are_changes = False
                 for field in self.fields:
                         text = self.fields[field].get()
-                        if text:
-                                text = text.replace(' ', '_')
-                                completion_list = self.fields[field].get_completion_list()
-                                if not text in completion_list:
-                                        new_texts[field] = text
-                                        completion_list.append(text)
-                                        self.fields[field].set_completion_list(completion_list)
-
-                # Actualizar el archivo de conf con la lista de autocompletado
-                if new_texts.items():
-                        parser = ConfigParser.RawConfigParser()
-                        parser.read(CONFIG_FILE)
-                        for field in new_texts:
-                                autocomplete_value = parser.get(field, 'autocomplete')
-                                autocomplete_value += ' ' + new_texts[field]
-                                parser.set(field, 'autocomplete', autocomplete_value)
-                        with open(CONFIG_FILE, 'wb') as configfile:
-                            parser.write(configfile)
-                        self.read_config()
+                        if text and not text in self.config[field]['autocomplete']:
+                                are_changes = True
+                                self.config[field]['autocomplete'].append(text)
+                                self.fields[field].set_completion_list(self.config[field]['autocomplete'])
+                if are_changes:
+                    self.config.write()
 
 
         def first(self): self.show_cell(2)
@@ -298,6 +267,7 @@ class Transciption(Tkinter.Tk):
                 return not empty
 
         def next(self):
+                self.update_autocomplete()
                 # Mantener N° Sección, N° Subdelegación, Comuna Subdelegación, Inscripción cuando el siguiente está vació
                 if self.is_current_cell_not_empty():
                         last_row = self.ws.get_highest_row()
@@ -305,6 +275,7 @@ class Transciption(Tkinter.Tk):
                         if self.current_row == last_row:
                             stay_next = True
                         self.show_cell(self.current_row+1, stay_next=stay_next)
+
 
 
 if __name__ == '__main__':
