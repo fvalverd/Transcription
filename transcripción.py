@@ -6,14 +6,19 @@ import sys
 import Tkinter, tkFileDialog
 from Tkinter import *
 
-from openpyxl import load_workbook
+from openpyxl.reader.excel import load_workbook
+from openpyxl.style import Color, Fill
+# Cell background color
+# _cell.style.fill.fill_type = Fill.FILL_SOLID
+# _cell.style.fill.start_color.index = Color.DARKRED
 
 __version__ = "1.0"
 
 
+
 CONFIG_FILE = u'transcripción.cfg'
-XLSX_PREFIX = u'Padrones electorales 1925 Santiago'
 tkinter_umlauts=['odiaeresis', 'adiaeresis', 'udiaeresis', 'Odiaeresis', 'Adiaeresis', 'Udiaeresis', 'ssharp']
+
 
 
 class AutocompleteEntry(Tkinter.Entry):
@@ -71,6 +76,7 @@ class AutocompleteEntry(Tkinter.Entry):
                 # perform normal autocomplete if event is a single key or an umlaut
                 if len(event.keysym) == 1 or event.keysym in tkinter_umlauts:
                         self.autocomplete()
+
 
 
 class Transciption(Tkinter.Tk):
@@ -173,8 +179,8 @@ class Transciption(Tkinter.Tk):
                 print 'Showing OK'
 
         def load(self):
-                print 'Openning ' , self.xlsx_name
                 self.xlsx_name = tkFileDialog.askopenfilename(parent=self, title='Escoge la planilla para trabajar', defaultextension='xlsx')
+                print 'Openning ', self.xlsx_name
                 if not self.xlsx_name: return
                 self.wb = load_workbook(self.xlsx_name)
                 self.ws = self.wb.worksheets[0]
@@ -184,6 +190,7 @@ class Transciption(Tkinter.Tk):
                 print 'Openning OK'
 
         def save(self):
+                self.update_autocomplete()
                 self.save_ws(persist=True)
         
         def save_ws(self, persist=False):
@@ -205,6 +212,16 @@ class Transciption(Tkinter.Tk):
                                 if column:
                                         cell = self.ws.cell(column + str(self.current_row))
                                         cell.value = self.vars_fields[field].get()
+
+                        # Datos permanentes # TODO: esto debe ir en el cfg, puede ser el tag default
+                        defaults = [{'name':u'año', 'column':u'B', 'value':'1925'},
+                                    {'name':u'provincia', 'column':u'D', 'value':'santiago'},
+                                    {'name':u'sexo', 'column':u'J', 'value':'h'},
+                                    ]
+                        for default in defaults:
+                            cell = self.ws.cell(default.get('column') + str(self.current_row))
+                            cell.value = default.get('value')
+
                         if persist:
                                 self.wb.save(self.xlsx_name)
                 print 'Saving OK'
