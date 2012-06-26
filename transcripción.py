@@ -3,7 +3,7 @@
 from configobj import ConfigObj
 import os
 import sys
-import Tkinter, tkFileDialog, tkMessageBox
+import Tkinter, tkFileDialog, tkMessageBox, tkFont
 from Tkinter import *
 
 from openpyxl.reader.excel import load_workbook
@@ -81,6 +81,7 @@ class Transciption(Tkinter.Tk):
 
         def __init__(self, *args, **kwargs):
                 Tkinter.Tk.__init__(self, *args, **kwargs)
+                self.customFont = tkFont.Font(family="Helvetica", size=16)
 
                 self.title(u' Gaby\'s Transcription :) :)')
 
@@ -102,9 +103,9 @@ class Transciption(Tkinter.Tk):
                 # Current row
                 current_frame = Frame(self)
                 current_frame.pack()
-                Label(current_frame, text=u'Fila actual :  ').pack(side=LEFT)
+                Label(current_frame, text=u'Fila actual :  ', font=self.customFont).pack(side=LEFT)
                 self.var_current_row = StringVar()
-                Label(current_frame, textvariable=self.var_current_row).pack()
+                Label(current_frame, textvariable=self.var_current_row, font=self.customFont).pack()
 
                 # Config fields
                 self.add_fields()
@@ -112,19 +113,19 @@ class Transciption(Tkinter.Tk):
                 # Button options
                 options_frame = Frame(self)
                 options_frame.pack()
-                self.boton=Button(options_frame,text="Anterior", command=self.previuos)
+                self.boton=Button(options_frame,text="Anterior", command=self.previuos, font=self.customFont)
                 self.boton.pack(side=LEFT)
-                self.boton=Button(options_frame,text="Guardar", command=self.save)
+                self.boton=Button(options_frame,text="Guardar", command=self.save, font=self.customFont)
                 self.boton.pack(side=LEFT)
-                self.boton=Button(options_frame,text="Siguiente", command=self.next)
+                self.boton=Button(options_frame,text="Siguiente", command=self.next, font=self.customFont)
                 self.boton.pack()
                 options_frame = Frame(self)
                 options_frame.pack()
-                self.boton=Button(options_frame,text="Primero", command=self.first)
+                self.boton=Button(options_frame,text="Primero", command=self.first, font=self.customFont)
                 self.boton.pack(side=LEFT)
-                self.boton=Button(options_frame,text="Cargar planilla", command=self.load)
+                self.boton=Button(options_frame,text="Cargar planilla", command=self.load, font=self.customFont)
                 self.boton.pack(side=LEFT)
-                self.boton=Button(options_frame,text="Último", command=self.last)
+                self.boton=Button(options_frame,text="Último", command=self.last, font=self.customFont)
                 self.boton.pack()
 
                 self.load()
@@ -151,15 +152,15 @@ class Transciption(Tkinter.Tk):
                         position = int(self.config[field].get('position'))
                         frame = frames[position-1]
                         frame.pack()
-                        Label(frame, text=field, anchor=E, width=35).pack(fill=X, side=LEFT)
+                        Label(frame, text=field, anchor=E, width=35, font=self.customFont).pack(fill=X, side=LEFT)
                         self.vars_fields[field] = StringVar()
                         
                         # Autocomplete
                         if 'autocomplete' in self.config[field]:
-                            self.fields[field] = AutocompleteEntry(frame, textvariable=self.vars_fields[field])
+                            self.fields[field] = AutocompleteEntry(frame, textvariable=self.vars_fields[field], font=self.customFont)
                             self.fields[field].set_completion_list(self.config[field]['autocomplete'])
                         else:
-                            self.fields[field] = Entry(frame, textvariable=self.vars_fields[field])
+                            self.fields[field] = Entry(frame, textvariable=self.vars_fields[field], font=self.customFont)
                         self.fields[field].pack()
 
                         # Keep first
