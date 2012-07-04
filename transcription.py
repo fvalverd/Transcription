@@ -16,11 +16,11 @@ from openpyxl.style import Color, Fill
 # _cell.style.fill.fill_type = Fill.FILL_SOLID
 # _cell.style.fill.start_color.index = Color.DARKRED
 
-__version__ = "1.1"
+__version__ = "1.2"
 
 
 LOCAL_DIR = os.path.dirname(os.path.abspath(__file__))
-CONFIG_FILE = u'transcripción.cfg'
+CONFIG_FILE = u'transcription.cfg'
 tkinter_umlauts=['odiaeresis', 'adiaeresis', 'udiaeresis', 'Odiaeresis', 'Adiaeresis', 'Udiaeresis', 'ssharp']
 
 
