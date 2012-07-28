@@ -25,51 +25,77 @@ CONFIG_FILE = u'transcription.cfg'
 class Transciption(Tkinter.Tk):
 
     def __init__(self, *args, **kwargs):
+        
         Tkinter.Tk.__init__(self, *args, **kwargs)
-
-        self.title(u' Gaby\'s Transcription :) :)') # TODO: put this on config file
-
+        
         # Init local data
         self.init_values()
-        self.customFont = tkFont.Font(family="Helvetica", size=16)
+        self.config = ConfigObj(CONFIG_FILE, encoding='utf-8')
+        self.interface_texts = self.config.get('interface_texts', dict())
+        
+        # Info
+        self.title(self.config.get('title', 'Transcription'))
+        self.customFont = tkFont.Font(family = self.config.get('family_font', 'Helvetica'),
+            size = int(self.config.get('family_size', 16)))
 
         # Windows close and Press keys
         self.protocol("WM_DELETE_WINDOW", self.exit)
         self.bind("<Control-s>", self.save)
         self.bind("<Next>", self.next)
         self.bind("<Prior>", self.previuos)
-        
-        # TODO: put names on Config File
 
         # Current row
         current_frame = Tkinter.Frame(self)
         current_frame.pack()
-        Tkinter.Label(current_frame, text=u'Fila actual :  ', font=self.customFont).pack(side=Tkinter.LEFT)
+        Tkinter.Label(current_frame,
+            text=u'%s :  ' % self.interface_texts.get('current_row', 'Current row'),
+            font=self.customFont).pack(side=Tkinter.LEFT)
         self.var_current_row = Tkinter.StringVar()
-        Tkinter.Label(current_frame, textvariable=self.var_current_row, font=self.customFont).pack()
+        Tkinter.Label(current_frame,
+            textvariable=self.var_current_row,
+            font=self.customFont).pack()
 
         # Config fields
-        self.config = ConfigObj(CONFIG_FILE, encoding='utf-8')
-        self.fields = self.config.get('fields', dict()).get('to_enter', dict())
+        self.fields = self.config.get('fields').get('to_enter', dict())
         self.permanent_fields = self.config.get('fields', dict()).get('permanent', dict())
         self.add_fields()
+        
         
         # Button options
         options_frame = Tkinter.Frame(self)
         options_frame.pack()
-        self.boton = Tkinter.Button(options_frame,text="Anterior", command=self.previuos, font=self.customFont)
+        self.boton = Tkinter.Button(options_frame,
+            text=self.interface_texts.get('previous'),
+            command=self.previuos,
+            font=self.customFont)
         self.boton.pack(side=Tkinter.LEFT)
-        self.boton = Tkinter.Button(options_frame,text="Guardar", command=self.save, font=self.customFont)
+        self.boton = Tkinter.Button(options_frame,
+            text=self.interface_texts.get('save'),
+            command=self.save,
+            font=self.customFont)
         self.boton.pack(side=Tkinter.LEFT)
-        self.boton = Tkinter.Button(options_frame,text="Siguiente", command=self.next, font=self.customFont)
+        self.boton = Tkinter.Button(options_frame,
+            text=self.interface_texts.get('next'),
+            command=self.next,
+            font=self.customFont)
         self.boton.pack()
+
         options_frame = Tkinter.Frame(self)
         options_frame.pack()
-        self.boton = Tkinter.Button(options_frame,text="Primero", command=self.first, font=self.customFont)
+        self.boton = Tkinter.Button(options_frame,
+            text=self.interface_texts.get('first'),
+            command=self.first,
+            font=self.customFont)
         self.boton.pack(side=Tkinter.LEFT)
-        self.boton = Tkinter.Button(options_frame,text="Cargar planilla", command=self.load, font=self.customFont)
+        self.boton = Tkinter.Button(options_frame,
+            text=self.interface_texts.get('load_sheet'),
+            command=self.load,
+            font=self.customFont)
         self.boton.pack(side=Tkinter.LEFT)
-        self.boton = Tkinter.Button(options_frame,text="Último", command=self.last, font=self.customFont)
+        self.boton = Tkinter.Button(options_frame,
+            text=self.interface_texts.get('last'),
+            command=self.last,
+            font=self.customFont)
         self.boton.pack()
 
         self.load()
@@ -77,6 +103,7 @@ class Transciption(Tkinter.Tk):
     def init_values(self):
         self.config = dict()
         self.fields = dict()
+        self.permanent_fields = dict()
         self.current_row = None
         self.xlsx_name = None
         self.wb = None
@@ -177,7 +204,7 @@ class Transciption(Tkinter.Tk):
 
     def load(self):
         self.xlsx_name = tkFileDialog.askopenfilename(parent=self,
-            title='Escoge la planilla para trabajar', # TODO: put this on config file
+            title=self.interface_texts.get('choose_sheet'),
             defaultextension='xlsx')
         print 'Openning ', self.xlsx_name
         if not self.xlsx_name: return
@@ -266,7 +293,7 @@ class Transciption(Tkinter.Tk):
             self.show_cell(self.current_row+1, stay_next=stay_next)
 
     def exit(self):
-        if tkMessageBox.askokcancel('Salir', u'¿Estás segura que quieres salir?'): # TODO: put this on Config File
+        if tkMessageBox.askokcancel('Close', self.interface_texts.get('close_question')):
             self.destroy()
 
 

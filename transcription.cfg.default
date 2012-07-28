@@ -1,3 +1,21 @@
+title		=  Title
+font_family = Helvetica
+font_size	= 12
+
+
+[interface_texts]
+	current_row = Current row
+	previous	= Previous
+	save		= Save
+	next		= Next
+	first		= First
+	load_sheet	= Load sheet
+	last		= Last
+
+	choose_sheet	= Choose yor sheet to work
+	close_question 	= Are you sure you want to close this?
+
+
 [fields]
 
 	[[to_enter]]
