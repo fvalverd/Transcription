@@ -3,7 +3,16 @@
 import Tkinter
 
 
-tkinter_umlauts=['odiaeresis', 'adiaeresis', 'udiaeresis', 'Odiaeresis', 'Adiaeresis', 'Udiaeresis', 'ssharp']
+tkinter_umlauts = [
+    'odiaeresis',
+    'adiaeresis',
+    'udiaeresis',
+    'Odiaeresis',
+    'Adiaeresis',
+    'Udiaeresis',
+    'ssharp'
+]
+
 
 class AutoCompleteEntry(Tkinter.Entry):
         

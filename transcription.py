@@ -14,7 +14,8 @@ from openpyxl.reader.excel import load_workbook
 
 from autocomplete_entry import AutoCompleteEntry
 
-__version__ = "1.2"
+
+__version__ = "1.3"
 
 
 LOCAL_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -49,6 +50,7 @@ class Transciption(Tkinter.Tk):
 
         # Config fields
         self.config = ConfigObj(CONFIG_FILE, encoding='utf-8')
+        self.fields = self.config['fields']
         self.add_fields()
         
         # Button options
@@ -72,25 +74,26 @@ class Transciption(Tkinter.Tk):
         self.load()
 
     def init_values(self):
-        self.config = None
+        self.config = dict()
+        self.fields = dict()
         self.current_row = None
         self.xlsx_name = None
         self.wb = None
         self.ws = None
         self.first_entry_field = None
-        self.fields = dict()
+        self.entries = dict()
         self.vars_fields = dict()
-        self.fields_stay_next = list()
+        self.entries_stay_next = list()
 
     def add_fields(self):
         # Frame order
         frames = list()
-        for field in self.config:
+        for field in self.fields:
             frames.append(Tkinter.Frame(self))
             frames[-1].pack()
 
-        for field in self.config:
-            position = int(self.config[field].get('position'))
+        for field in self.fields:
+            position = int(self.fields[field].get('position_gui'))
             frame = frames[position-1]
             frame.pack()
             Tkinter.Label(frame,
@@ -100,31 +103,31 @@ class Transciption(Tkinter.Tk):
                 font=self.customFont).pack(fill=Tkinter.X, side=Tkinter.LEFT)
             self.vars_fields[field] = Tkinter.StringVar()
             
-            if 'autocomplete' in self.config[field]:
-                self.fields[field] = AutoCompleteEntry(frame,
+            if 'autocomplete' in self.fields[field]:
+                self.entries[field] = AutoCompleteEntry(frame,
                     textvariable=self.vars_fields[field],
                     font=self.customFont)
-                self.fields[field].set_completion_list(self.config[field]['autocomplete'])
+                self.entries[field].set_completion_list(self.fields[field]['autocomplete'])
             else:
-                self.fields[field] = Tkinter.Entry(frame,
+                self.entries[field] = Tkinter.Entry(frame,
                     textvariable=self.vars_fields[field],
                     font=self.customFont)
-            self.fields[field].pack()
+            self.entries[field].pack()
 
             # Keep focus on first field
             if position == 1:
-                self.first_entry_field = self.fields[field]
+                self.first_entry_field = self.entries[field]
                 self.first_entry_field.focus_set()
 
             # Keep Stay Next value field
-            if 'stay_next' in self.config[field]:
-                if self.config[field]['stay_next'] == 'True':
-                    self.fields_stay_next.append(self.vars_fields[field])
+            if 'stay_next' in self.fields[field]:
+                if self.fields[field]['stay_next'] == 'True':
+                    self.entries_stay_next.append(self.vars_fields[field])
 
     def clean_entries(self, stay_next=False):
-        for field in self.fields:
+        for field in self.entries:
             var_field = self.vars_fields[field]
-            if stay_next and var_field in self.fields_stay_next:
+            if stay_next and var_field in self.entries_stay_next:
                 continue
             var_field.set('')
 
@@ -137,8 +140,8 @@ class Transciption(Tkinter.Tk):
 
         # Show on Entries
         self.clean_entries(stay_next=stay_next)
-        for field in self.config:
-            column = self.config[field].get('column')
+        for field in self.fields:
+            column = self.fields[field].get('column')
             if column:
                 value = self.ws.cell(column + str(row)).value
                 if value:
@@ -192,24 +195,24 @@ class Transciption(Tkinter.Tk):
     
     def save_ws(self, persist=False):
         if self.current_row:
-            # Respaldar los actuales datos si no existe archivo
+            # Keep current data it file doesn't exist
             if not self.xlsx_name:
                 current_data = dict()
-                for field in self.fields:
+                for field in self.entries:
                     current_data[field] = self.vars_fields[field].get()
                 self.load()
                 self.next()
-                for field in self.fields:
+                for field in self.entries:
                     self.vars_fields[field].set(current_data[field])
 
-            # Guardar nuevo dato en el XLSX
-            for field in self.config:
-                column = self.config[field].get('column')
+            # Save current data on XLSX object
+            for field in self.fields:
+                column = self.fields[field].get('column')
                 if column:
                     cell = self.ws.cell(column + str(self.current_row))
                     cell.value = self.vars_fields[field].get()
 
-            # Datos permanentes # TODO: add exclude elements on config file
+            # Permanent data # TODO: add exclude elements on config file
             defaults = [{'name':u'año', 'column':u'B', 'value':'1925'},
                         {'name':u'provincia', 'column':u'D', 'value':'santiago'},
                         {'name':u'sexo', 'column':u'J', 'value':'h'},
@@ -225,17 +228,16 @@ class Transciption(Tkinter.Tk):
     def update_autocomplete(self):
         # Actualiza la lista de autocompletado en los Entry
         are_changes = False
-        for field in self.fields:
-            if not 'autocomplete' in self.config[field]:
+        for field in self.entries:
+            if not 'autocomplete' in self.fields[field]:
                 continue 
-            text = self.fields[field].get()
-            if text and not text in self.config[field]['autocomplete']:
+            text = self.entries[field].get()
+            if text and not text in self.fields[field]['autocomplete']:
                 are_changes = True
-                self.config[field]['autocomplete'].append(text)
-                self.fields[field].set_completion_list(self.config[field]['autocomplete'])
+                self.fields[field]['autocomplete'].append(text)
+                self.entries[field].set_completion_list(self.fields[field]['autocomplete'])
         if are_changes:
             self.config.write()
-
 
     def first(self): self.show_cell(2)
 
@@ -250,7 +252,7 @@ class Transciption(Tkinter.Tk):
     def is_current_cell_not_empty(self):
         empty = True
         for field in self.vars_fields:
-            if 'stay_next' in self.config[field]:
+            if 'stay_next' in self.fields[field]:
                 continue
             if self.vars_fields[field].get():
                 empty = False
