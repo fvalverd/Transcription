@@ -50,7 +50,8 @@ class Transciption(Tkinter.Tk):
 
         # Config fields
         self.config = ConfigObj(CONFIG_FILE, encoding='utf-8')
-        self.fields = self.config['fields']
+        self.fields = self.config.get('fields', dict()).get('to_enter', dict())
+        self.permanent_fields = self.config.get('fields', dict()).get('permanent', dict())
         self.add_fields()
         
         # Button options
@@ -212,14 +213,10 @@ class Transciption(Tkinter.Tk):
                     cell = self.ws.cell(column + str(self.current_row))
                     cell.value = self.vars_fields[field].get()
 
-            # Permanent data # TODO: add exclude elements on config file
-            defaults = [{'name':u'año', 'column':u'B', 'value':'1925'},
-                        {'name':u'provincia', 'column':u'D', 'value':'santiago'},
-                        {'name':u'sexo', 'column':u'J', 'value':'h'},
-                        ]
-            for default in defaults:
-                cell = self.ws.cell(default.get('column') + str(self.current_row))
-                cell.value = default.get('value')
+            # Permanent data
+            for field in self.permanent_fields:
+                cell = self.ws.cell(self.permanent_fields[field].get('column') + str(self.current_row))
+                cell.value = self.permanent_fields[field].get('value')
 
             # If persist save on xlsx file
             if persist:

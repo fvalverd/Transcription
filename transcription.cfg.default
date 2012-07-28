@@ -1,11 +1,24 @@
 [fields]
-	[[field_1]]
-		column = A
-		autocomplete = foo, bar
-		position_gui = 2
-		stay_next = True
+
+	[[to_enter]]
+
+		[[[field_1]]]
+			column = A
+			autocomplete = foo, bar
+			position_gui = 2
+			stay_next = True
+		
+		[[[field_2]]]
+			column = B
+			position_gui = 1
+			stay_next = True
+
+	[[permanent]]
 	
-	[[field_2]]
-		column = B
-		position_gui = 1
-		stay_next = True
+		[[[field_1]]]
+			column = A
+			value = 123
+		
+		[[[field_2]]]
+			column = A
+			value = 456
