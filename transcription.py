@@ -1,135 +1,72 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 
 from configobj import ConfigObj
-import copy
 from datetime import datetime
 import os
 import shutil
-import sys
-import threading
 import Tkinter, tkFileDialog, tkMessageBox, tkFont
-from Tkinter import *
 
 from openpyxl.reader.excel import load_workbook
-from openpyxl.style import Color, Fill
+# from openpyxl.style import Color, Fill
 # Cell background color
 # _cell.style.fill.fill_type = Fill.FILL_SOLID
 # _cell.style.fill.start_color.index = Color.DARKRED
+
+from autocomplete_entry import AutoCompleteEntry
 
 __version__ = "1.2"
 
 
 LOCAL_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = u'transcription.cfg'
-tkinter_umlauts=['odiaeresis', 'adiaeresis', 'udiaeresis', 'Odiaeresis', 'Adiaeresis', 'Udiaeresis', 'ssharp']
-
-
-
-class AutocompleteEntry(Tkinter.Entry):
-        
-    def set_completion_list(self, completion_list):
-        self._completion_list = completion_list
-        self._hits = []
-        self._hit_index = 0
-        self.position = 0
-        self.bind('<KeyRelease>', self.handle_keyrelease)
-
-    def autocomplete(self, delta=0):
-        """autocomplete the Entry, delta may be 0/1/-1 to cycle through possible hits"""
-        if delta: # need to delete selection otherwise we would fix the current position
-                self.delete(self.position, Tkinter.END)
-        else: # set position to end so selection starts where textentry ended
-                self.position = len(self.get())
-        # collect hits
-        _hits = []
-        for element in self._completion_list:
-                if element.startswith(self.get().lower()):
-                        _hits.append(element)
-        # if we have a new hit list, keep this in mind
-        if _hits != self._hits:
-                self._hit_index = 0
-                self._hits=_hits
-        # only allow cycling if we are in a known hit list
-        if _hits == self._hits and self._hits:
-                self._hit_index = (self._hit_index + delta) % len(self._hits)
-        # now finally perform the auto completion
-        if self._hits:
-                self.delete(0,Tkinter.END)
-                self.insert(0,self._hits[self._hit_index])
-                self.select_range(self.position,Tkinter.END)
-                    
-    def handle_keyrelease(self, event):
-        """event handler for the keyrelease event on this widget"""
-        if event.keysym == "BackSpace":
-                self.delete(self.index(Tkinter.INSERT), Tkinter.END) 
-                self.position = self.index(Tkinter.END)
-        if event.keysym == "Left":
-                if self.position < self.index(Tkinter.END): # delete the selection
-                        self.delete(self.position, Tkinter.END)
-                else:
-                        self.position = self.position-1 # delete one character
-                        self.delete(self.position, Tkinter.END)
-        if event.keysym == "Right":
-                self.position = self.index(Tkinter.END) # go to end (no selection)
-        if event.keysym == "Down":
-                self.autocomplete(1) # cycle to next hit
-        if event.keysym == "Up":
-                self.autocomplete(-1) # cycle to previous hit
-        # perform normal autocomplete if event is a single key or an umlaut
-        if len(event.keysym) == 1 or event.keysym in tkinter_umlauts:
-                self.autocomplete()
-
 
 
 class Transciption(Tkinter.Tk):
 
     def __init__(self, *args, **kwargs):
         Tkinter.Tk.__init__(self, *args, **kwargs)
+
+        self.title(u' Gaby\'s Transcription :) :)') # TODO: put this on config file
+
+        # Init local data
+        self.init_values()
         self.customFont = tkFont.Font(family="Helvetica", size=16)
 
-        self.title(u' Gaby\'s Transcription :) :)')
-
-        # Button X Exit
+        # Windows close and Press keys
         self.protocol("WM_DELETE_WINDOW", self.exit)
-
-        # Save
         self.bind("<Control-s>", self.save)
-
-        # Next
         self.bind("<Next>", self.next)
-
-        # Previous
         self.bind("<Prior>", self.previuos)
-
-        self.init_values()
-        self.config = ConfigObj(CONFIG_FILE, encoding='utf-8')
         
+        # TODO: put names on Config File
+
         # Current row
-        current_frame = Frame(self)
+        current_frame = Tkinter.Frame(self)
         current_frame.pack()
-        Label(current_frame, text=u'Fila actual :  ', font=self.customFont).pack(side=LEFT)
-        self.var_current_row = StringVar()
-        Label(current_frame, textvariable=self.var_current_row, font=self.customFont).pack()
+        Tkinter.Label(current_frame, text=u'Fila actual :  ', font=self.customFont).pack(side=Tkinter.LEFT)
+        self.var_current_row = Tkinter.StringVar()
+        Tkinter.Label(current_frame, textvariable=self.var_current_row, font=self.customFont).pack()
 
         # Config fields
+        self.config = ConfigObj(CONFIG_FILE, encoding='utf-8')
         self.add_fields()
         
         # Button options
-        options_frame = Frame(self)
+        options_frame = Tkinter.Frame(self)
         options_frame.pack()
-        self.boton=Button(options_frame,text="Anterior", command=self.previuos, font=self.customFont)
-        self.boton.pack(side=LEFT)
-        self.boton=Button(options_frame,text="Guardar", command=self.save, font=self.customFont)
-        self.boton.pack(side=LEFT)
-        self.boton=Button(options_frame,text="Siguiente", command=self.next, font=self.customFont)
+        self.boton = Tkinter.Button(options_frame,text="Anterior", command=self.previuos, font=self.customFont)
+        self.boton.pack(side=Tkinter.LEFT)
+        self.boton = Tkinter.Button(options_frame,text="Guardar", command=self.save, font=self.customFont)
+        self.boton.pack(side=Tkinter.LEFT)
+        self.boton = Tkinter.Button(options_frame,text="Siguiente", command=self.next, font=self.customFont)
         self.boton.pack()
-        options_frame = Frame(self)
+        options_frame = Tkinter.Frame(self)
         options_frame.pack()
-        self.boton=Button(options_frame,text="Primero", command=self.first, font=self.customFont)
-        self.boton.pack(side=LEFT)
-        self.boton=Button(options_frame,text="Cargar planilla", command=self.load, font=self.customFont)
-        self.boton.pack(side=LEFT)
-        self.boton=Button(options_frame,text="Último", command=self.last, font=self.customFont)
+        self.boton = Tkinter.Button(options_frame,text="Primero", command=self.first, font=self.customFont)
+        self.boton.pack(side=Tkinter.LEFT)
+        self.boton = Tkinter.Button(options_frame,text="Cargar planilla", command=self.load, font=self.customFont)
+        self.boton.pack(side=Tkinter.LEFT)
+        self.boton = Tkinter.Button(options_frame,text="Último", command=self.last, font=self.customFont)
         self.boton.pack()
 
         self.load()
@@ -149,30 +86,37 @@ class Transciption(Tkinter.Tk):
         # Frame order
         frames = list()
         for field in self.config:
-            frames.append(Frame(self))
+            frames.append(Tkinter.Frame(self))
             frames[-1].pack()
 
         for field in self.config:
             position = int(self.config[field].get('position'))
             frame = frames[position-1]
             frame.pack()
-            Label(frame, text=field, anchor=E, width=35, font=self.customFont).pack(fill=X, side=LEFT)
-            self.vars_fields[field] = StringVar()
+            Tkinter.Label(frame,
+                text=field,
+                anchor=Tkinter.E,
+                width=35,
+                font=self.customFont).pack(fill=Tkinter.X, side=Tkinter.LEFT)
+            self.vars_fields[field] = Tkinter.StringVar()
             
-            # Autocomplete
             if 'autocomplete' in self.config[field]:
-                self.fields[field] = AutocompleteEntry(frame, textvariable=self.vars_fields[field], font=self.customFont)
+                self.fields[field] = AutoCompleteEntry(frame,
+                    textvariable=self.vars_fields[field],
+                    font=self.customFont)
                 self.fields[field].set_completion_list(self.config[field]['autocomplete'])
             else:
-                self.fields[field] = Entry(frame, textvariable=self.vars_fields[field], font=self.customFont)
+                self.fields[field] = Tkinter.Entry(frame,
+                    textvariable=self.vars_fields[field],
+                    font=self.customFont)
             self.fields[field].pack()
 
-            # Keep first
+            # Keep focus on first field
             if position == 1:
                 self.first_entry_field = self.fields[field]
                 self.first_entry_field.focus_set()
 
-            # Keep Stay Next list
+            # Keep Stay Next value field
             if 'stay_next' in self.config[field]:
                 if self.config[field]['stay_next'] == 'True':
                     self.fields_stay_next.append(self.vars_fields[field])
@@ -188,9 +132,7 @@ class Transciption(Tkinter.Tk):
         print 'Showing' , row
 
         self.var_current_row.set(str(row))
-        # Save current worksheet (not persist)
         self.save_ws()
-
         self.current_row = row
 
         # Show on Entries
@@ -218,21 +160,21 @@ class Transciption(Tkinter.Tk):
         return backup_file_path
 
     def backup(self):
-        # self.wb.save(self.get_backup_file_path())
         backup_file_path = self.get_backup_file_path()
         shutil.copy2(self.xlsx_name, backup_file_path)
         print 'Backup... OK!' , backup_file_path
 
     def save_xlsx_file(self):
         print 'Saving Excel...'
-        #self.wb.save(self.xlsx_name)
         backup_file_path = self.get_backup_file_path()
         self.wb.save(backup_file_path)
         shutil.copy2(backup_file_path, self.xlsx_name)
         print 'Saving Excel... OK!' , self.xlsx_name
 
     def load(self):
-        self.xlsx_name = tkFileDialog.askopenfilename(parent=self, title='Escoge la planilla para trabajar', defaultextension='xlsx')
+        self.xlsx_name = tkFileDialog.askopenfilename(parent=self,
+            title='Escoge la planilla para trabajar', # TODO: put this on config file
+            defaultextension='xlsx')
         print 'Openning ', self.xlsx_name
         if not self.xlsx_name: return
         self.wb = load_workbook(self.xlsx_name)
@@ -267,7 +209,7 @@ class Transciption(Tkinter.Tk):
                     cell = self.ws.cell(column + str(self.current_row))
                     cell.value = self.vars_fields[field].get()
 
-            # Datos permanentes # TODO: esto debe ir en el cfg
+            # Datos permanentes # TODO: add exclude elements on config file
             defaults = [{'name':u'año', 'column':u'B', 'value':'1925'},
                         {'name':u'provincia', 'column':u'D', 'value':'santiago'},
                         {'name':u'sexo', 'column':u'J', 'value':'h'},
@@ -317,7 +259,6 @@ class Transciption(Tkinter.Tk):
 
     def next(self, dummy=None):
         self.update_autocomplete()
-        # Mantener N° Sección, N° Subdelegación, Comuna Subdelegación, Inscripción cuando el siguiente está vació
         if self.is_current_cell_not_empty():
             last_row = self.ws.get_highest_row()
             stay_next = False
@@ -326,7 +267,7 @@ class Transciption(Tkinter.Tk):
             self.show_cell(self.current_row+1, stay_next=stay_next)
 
     def exit(self):
-        if tkMessageBox.askokcancel('Salir', u'¿Estás segura que quieres salir?'):
+        if tkMessageBox.askokcancel('Salir', u'¿Estás segura que quieres salir?'): # TODO: put this on Config File
             self.destroy()
 
 
