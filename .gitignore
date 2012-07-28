@@ -1,4 +1,6 @@
 *.pyc
-backup
+*.cfg
 *.xlsx
 *.zip
+
+backup
