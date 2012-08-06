@@ -6,20 +6,24 @@ You can set defaults ​and values ​​to fill (automcomplete fields and other
 
 
 
+
 How to install
 --------------
 
-With virtualenv:
-$ python setup develop
+###### With virtualenv:
+	$ python setup develop
 
-Without virtualenv:
-# python setup develop
+###### Without virtualenv:
+	# python setup develop
+
 
 
 
 How to use
 ----------
-
-$ cp scripts/transcription.cfg.default scripts/transcription.cfg
-$ vim scripts/transcription.cfg
-$ python scrips/transcription_executable.py
+###### Duplicate configuration template
+	$ cp scripts/{transcription.cfg.default,transcription.cfg}
+###### Edit configuration
+	$ vim scripts/transcription.cfg
+###### Run script
+	$ python scrips/transcription_executable.py
