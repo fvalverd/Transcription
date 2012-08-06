@@ -19,6 +19,7 @@ __version__ = "1.3"
 # TODO: create configuration dir
 # TODO: create a class that encapsulate openpyxl behavior
 # TODO: refactor code (fields, methods, classes, etc.)
+# FIX: add tests
 
 
 CONFIG_FILE = os.path.join(os.path.dirname(__file__), 'transcription.cfg')
