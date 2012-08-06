@@ -5,7 +5,19 @@ This is a tool to automate the copying of documents to an Excel spreadsheet, is 
 You can set defaults ​and values ​​to fill (automcomplete fields and other options)
 
 
-How to use:
+
+How to install
+--------------
+
+With virtualenv:
+$ python setup develop
+
+Without virtualenv:
+# python setup develop
+
+
+
+How to use
 ----------
 
 $ cp scripts/transcription.cfg.default scripts/transcription.cfg
