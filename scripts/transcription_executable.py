@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+#! /usr/bin/env python
 
 from configobj import ConfigObj
 from datetime import datetime
@@ -7,19 +8,20 @@ import shutil
 import Tkinter, tkFileDialog, tkMessageBox, tkFont
 
 from openpyxl.reader.excel import load_workbook
-# from openpyxl.style import Color, Fill
-# Cell background color
-# _cell.style.fill.fill_type = Fill.FILL_SOLID
-# _cell.style.fill.start_color.index = Color.DARKRED
 
-from autocomplete_entry import AutoCompleteEntry
+from transcription import AutoCompleteEntry
 
 
 __version__ = "1.3"
 
 
-LOCAL_DIR = os.path.dirname(os.path.abspath(__file__))
-CONFIG_FILE = u'transcription.cfg'
+# TODO: list configuration files from configuration dir
+# TODO: create configuration dir
+# TODO: create a class that encapsulate openpyxl behavior
+# TODO: refactor code (fields, methods, classes, etc.)
+
+
+CONFIG_FILE = os.path.join(os.path.dirname(__file__), 'transcription.cfg')
 
 
 class Transciption(Tkinter.Tk):
@@ -56,7 +58,7 @@ class Transciption(Tkinter.Tk):
             font=self.customFont).pack()
 
         # Config fields
-        self.fields = self.config.get('fields').get('to_enter', dict())
+        self.fields = self.config.get('fields', dict()).get('to_enter', dict())
         self.permanent_fields = self.config.get('fields', dict()).get('permanent', dict())
         self.add_fields()
         
@@ -186,7 +188,7 @@ class Transciption(Tkinter.Tk):
         backup_dir_path = os.path.join(backup_dir_path, 'backup')
         if not os.path.exists(backup_dir_path):
             os.makedirs(backup_dir_path)
-        backup_file_path = "%s_%s" % (now, os.path.basename(self.xlsx_name))
+        backup_file_path = "%s %s" % (now, os.path.basename(self.xlsx_name))
         backup_file_path = os.path.join(backup_dir_path, backup_file_path)
         return backup_file_path
 
@@ -263,6 +265,7 @@ class Transciption(Tkinter.Tk):
         if are_changes:
             self.config.write()
 
+    # TODO: parameterize number 2
     def first(self): self.show_cell(2)
 
     def last(self):
