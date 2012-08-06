@@ -15,7 +15,7 @@ setup(
     scripts = ['scripts/transcription_executable.py'],
     include_package_data = True,
     zip_safe = False,
-    long_description = read('README'),
+    long_description = read('README.md'),
     install_requires = [
           "openpyxl",
       ],
